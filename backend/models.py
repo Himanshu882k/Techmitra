@@ -22,4 +22,14 @@ class Inquiry(Base):
     customer_phone = Column(String, nullable=False)
     message = Column(Text, nullable=True)
     timestamp = Column(DateTime, default=dt.datetime.utcnow, nullable=False)
-    status = Column(Enum(InquiryStatus), default=InquiryStatus.pending, nullable=False)
+
+    # IMPORTANT FIX → store as VARCHAR instead of native ENUM
+    status = Column(
+        Enum(
+            InquiryStatus,
+            values_callable=lambda x: [e.value for e in x],
+            native_enum=False,
+        ),
+        default=InquiryStatus.pending,
+        nullable=False,
+    )

@@ -13,9 +13,9 @@ from emailer import send_inquiry_email
 
 load_dotenv()
 
-# -----------------------------------------------------------------------------
+# ---------------------------------------------------------------------
 # Config
-# -----------------------------------------------------------------------------
+# ---------------------------------------------------------------------
 JWT_SECRET = os.getenv("JWT_SECRET") or os.getenv("FLASK_SECRET_KEY") or "CHANGE_ME"
 JWT_EXP_SECONDS = int(os.getenv("JWT_EXP_SECONDS", "86400"))
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
@@ -24,22 +24,25 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 app = Flask(__name__, static_folder="static", static_url_path="")
 CORS(app)
 
-# -----------------------------------------------------------------------------
-# DB setup
-# -----------------------------------------------------------------------------
+# ---------------------------------------------------------------------
+# Database (Supabase-safe)
+# ---------------------------------------------------------------------
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"sslmode": "require"}   # required for Supabase
+    pool_pre_ping=True,
+    pool_size=5,
+    max_overflow=2,
+    connect_args={"sslmode": "require"},   # required for Supabase direct Postgres
 )
 
-
 SessionLocal = scoped_session(sessionmaker(bind=engine))
-Base.metadata.create_all(bind=engine)
 
 
+# ---------------------------------------------------------------------
+# Auth Helpers
+# ---------------------------------------------------------------------
 def create_token():
     import jwt
-
     payload = {
         "iat": dt.datetime.utcnow(),
         "exp": dt.datetime.utcnow() + dt.timedelta(seconds=JWT_EXP_SECONDS),
@@ -49,7 +52,6 @@ def create_token():
 
 def verify_token(token: str) -> bool:
     import jwt
-
     try:
         jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
         return True
@@ -65,9 +67,9 @@ def require_auth():
     return verify_token(token)
 
 
-# -----------------------------------------------------------------------------
-# Public endpoints
-# -----------------------------------------------------------------------------
+# ---------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------
 @app.route("/api/health", methods=["GET"])
 def health():
     return jsonify({"ok": True, "service": "techmitra-backend"})
@@ -116,11 +118,10 @@ def create_inquiry():
                 }
             )
         except Exception as e:
-            # Do not fail the request if email fails
             app.logger.warning(f"Email sending failed: {e}")
 
         return jsonify({"ok": True, "id": new_id})
-    except Exception as e:
+    except Exception:
         db.rollback()
         app.logger.exception("Error while creating inquiry")
         return jsonify({"ok": False, "message": "Internal server error"}), 500
@@ -128,9 +129,9 @@ def create_inquiry():
         db.close()
 
 
-# -----------------------------------------------------------------------------
-# Admin endpoints
-# -----------------------------------------------------------------------------
+# ---------------------------------------------------------------------
+# Admin API
+# ---------------------------------------------------------------------
 @app.route("/api/admin/login", methods=["POST"])
 def admin_login():
     data = request.json or {}
@@ -174,6 +175,7 @@ def admin_update_status(inq_id: str):
 
     data = request.json or {}
     new_status = data.get("status")
+
     if new_status not in [s.value for s in InquiryStatus]:
         return jsonify({"ok": False, "message": "Invalid status"}), 400
 
@@ -182,6 +184,7 @@ def admin_update_status(inq_id: str):
         inquiry = db.query(Inquiry).filter(Inquiry.id == inq_id).first()
         if not inquiry:
             return jsonify({"ok": False, "message": "Inquiry not found"}), 404
+
         inquiry.status = InquiryStatus(new_status)
         db.commit()
         return jsonify({"ok": True})
@@ -189,20 +192,12 @@ def admin_update_status(inq_id: str):
         db.close()
 
 
-# -----------------------------------------------------------------------------
-# Static frontend
-# -----------------------------------------------------------------------------
+# ---------------------------------------------------------------------
+# Static Frontend
+# ---------------------------------------------------------------------
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
 def serve_frontend(path: str):
-    """
-    Serve the built React app from ./static.
-
-    Build command from the frontend folder (once):
-        npm install
-        npm run build
-    Then copy dist/* into backend/static/.
-    """
     if path and os.path.exists(os.path.join(app.static_folder, path)):
         return send_from_directory(app.static_folder, path)
 
@@ -210,15 +205,12 @@ def serve_frontend(path: str):
     if os.path.exists(index_path):
         return send_from_directory(app.static_folder, "index.html")
 
-    # Fallback if static build is missing
-    return jsonify(
-        {
-            "ok": True,
-            "message": "Backend running. Static frontend not found in ./static.",
-        }
-    )
+    return jsonify({"ok": True, "message": "Backend running. Static build missing."})
 
 
+# ---------------------------------------------------------------------
+# Entrypoint
+# ---------------------------------------------------------------------
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "5000"))
     app.run(host="0.0.0.0", port=port, debug=os.getenv("FLASK_ENV") != "production")
