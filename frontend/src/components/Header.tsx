@@ -12,7 +12,7 @@ export const Header: React.FC<HeaderProps> = ({ onAdminClick }) => {
       <div className="section-container flex items-center justify-between py-3">
         <a href="#top" className="flex items-center gap-2">
           <img
-            src={logo}
+            src={..assests/logo.png}
             alt="TechMitra Solutions Logo"
             className="h-9 w-9 rounded-xl object-contain border border-brand-accent/40 bg-brand-accent/10 p-1"
           />
