@@ -1,6 +1,6 @@
 import React from 'react'
 import { COMPANY_INFO } from '../constants'
-import logo from '../assets/logo.png'
+import logo from '../assets/logo.png'  // <-- correct import
 
 interface HeaderProps {
   onAdminClick: () => void
@@ -11,6 +11,8 @@ export const Header: React.FC<HeaderProps> = ({ onAdminClick }) => {
     <header className="sticky top-0 z-30 bg-slate-950/90 backdrop-blur border-b border-slate-800">
       <div className="section-container flex items-center justify-between py-3">
         <a href="#top" className="flex items-center gap-2">
+
+          {/* --- YOUR LOGO HERE --- */}
           <img
             src={..assests/logo.png}
             alt="TechMitra Solutions Logo"
