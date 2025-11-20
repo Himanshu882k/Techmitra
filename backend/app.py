@@ -27,7 +27,11 @@ CORS(app)
 # -----------------------------------------------------------------------------
 # DB setup
 # -----------------------------------------------------------------------------
-engine = create_engine(DATABASE_URL)
+engine = create_engine(
+    DATABASE_URL,
+    connect_args={"sslmode": "require"}   # required for Supabase
+)
+
 
 SessionLocal = scoped_session(sessionmaker(bind=engine))
 Base.metadata.create_all(bind=engine)
