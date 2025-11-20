@@ -7,7 +7,7 @@ export const COMPANY_INFO = {
   location: 'Khopoli & Nearby Areas',
   contacts: ['+91 78879 72649', '+91 89833 08695'],
   owners: ['Himanshu Sachan', 'Sagar Sarkar'],
-  email: 'contact@techmitra.com',
+  email: "techmitrasolutions1@gmail.com",
 }
 
 export const SERVICES: ServiceItem[] = [

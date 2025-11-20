@@ -20,7 +20,7 @@ def send_inquiry_email(payload: dict) -> None:
     port = int(os.getenv("SMTP_PORT", "587"))
     user = os.getenv("SMTP_USER")
     password = os.getenv("SMTP_PASS")
-    work_email = os.getenv("WORK_EMAIL")
+    work_email = os.getenv("WORK_EMAIL","techmitrasolutions1@gmail.com")
 
     if not (host and user and password and work_email):
         # Email disabled; nothing to do
