@@ -18,8 +18,8 @@ load_dotenv()
 # -----------------------------------------------------------------------------
 JWT_SECRET = os.getenv("JWT_SECRET") or os.getenv("FLASK_SECRET_KEY") or "CHANGE_ME"
 JWT_EXP_SECONDS = int(os.getenv("JWT_EXP_SECONDS", "86400"))
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "Dreamisit")
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///data.db")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 CORS(app)
