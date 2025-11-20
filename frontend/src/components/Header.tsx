@@ -1,5 +1,6 @@
 import React from 'react'
 import { COMPANY_INFO } from '../constants'
+import logo from '../assets/logo.png'
 
 interface HeaderProps {
   onAdminClick: () => void
@@ -10,9 +11,12 @@ export const Header: React.FC<HeaderProps> = ({ onAdminClick }) => {
     <header className="sticky top-0 z-30 bg-slate-950/90 backdrop-blur border-b border-slate-800">
       <div className="section-container flex items-center justify-between py-3">
         <a href="#top" className="flex items-center gap-2">
-          <div className="h-9 w-9 rounded-xl bg-brand-accent/10 border border-brand-accent/40 flex items-center justify-center">
-            <span className="text-brand-accent font-bold text-lg">TM</span>
-          </div>
+          <img
+            src={logo}
+            alt="TechMitra Solutions Logo"
+            className="h-9 w-9 rounded-xl object-contain border border-brand-accent/40 bg-brand-accent/10 p-1"
+          />
+
           <div className="flex flex-col leading-tight">
             <span className="font-semibold text-sm sm:text-base">
               {COMPANY_INFO.name}
